@@ -86,6 +86,16 @@ def apply_laplace_and_display():
             panel.image = laplace_img
             current_img = img  # Guardar la imagen original para futuros ajustes
 
+def reset_image():
+    global current_img
+    if img_rgb is not None:
+        current_img = img_rgb
+        img_resized = resize_image(img_rgb, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
 win.geometry("800x600")
@@ -129,5 +139,8 @@ gaussian_btn.pack(pady=10)
 
 laplace_btn = tk.Button(right_frame, text="Aplicar Filtro Laplace", command=apply_laplace_and_display)
 laplace_btn.pack(pady=10)
+
+reset_btn = tk.Button(right_frame, text="Restaurar Imagen", command=reset_image)
+reset_btn.pack(pady=10)
 
 win.mainloop()

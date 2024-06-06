@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 from filtros.segmentacion import segment_color, resize_image
 from filtros.byn import apply_gray_filter
 from filtros.brillo import adjust_brightness
-from filtros.filters import apply_gaussian_blur
+from filtros.filters import apply_gaussian_blur, apply_laplace_filter
 
 # Inicialización de variables globales
 img = None
@@ -64,6 +64,15 @@ def apply_gaussian_and_display():
         panel.config(image=img_tk)
         panel.image = img_tk
 
+def apply_laplace_and_display():
+    global current_img
+    if img is not None:
+        laplace_img = apply_laplace_filter(img)
+        if laplace_img is not None:
+            panel.config(image=laplace_img)
+            panel.image = laplace_img
+            current_img = img  # Guardar la imagen original para futuros ajustes
+
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
 win.geometry("800x600")
@@ -101,5 +110,8 @@ brightness_scrollbar.pack(pady=5)
 
 gaussian_btn = tk.Button(right_frame, text="Aplicar Filtro Gaussiano", command=apply_gaussian_and_display)
 gaussian_btn.pack(pady=10)
+
+laplace_btn = tk.Button(right_frame, text="Aplicar Filtro Laplace", command=apply_laplace_and_display)
+laplace_btn.pack(pady=10)
 
 win.mainloop()

@@ -19,3 +19,31 @@ def apply_gaussian(img_rgb):
         return img_tk
 
     return None
+
+def apply_laplace_filter(img):
+    """Aplica el filtro de Laplace a la imagen y devuelve la imagen filtrada lista para mostrar."""
+    if img is not None:
+        # Convertir a escala de grises
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # Aplicar desenfoque gaussiano
+        blurred_img = cv2.GaussianBlur(gray_img, (3, 3), 0)
+
+        # Aplicar el filtro de Laplace
+        laplace = cv2.Laplacian(blurred_img, cv2.CV_64F)
+
+        # Convertir de nuevo a escala de grises uint8
+        af = gray_img - laplace
+        af_uint8 = cv2.convertScaleAbs(af)
+
+        # Combinar la imagen original con la filtrada
+        result = cv2.addWeighted(img, 1, cv2.cvtColor(af_uint8, cv2.COLOR_GRAY2BGR), 0.5, 0)
+
+        # Redimensionar la imagen resultante
+        resized_result = cv2.resize(result, (600, 600))
+
+        # Convertir imagen a formato compatible con Tkinter
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(cv2.cvtColor(resized_result, cv2.COLOR_BGR2RGB)))
+        return img_tk
+
+    return None

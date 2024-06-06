@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import filedialog
 import cv2
+import numpy as np
 from PIL import Image, ImageTk
 from filtros.segmentacion import segment_color, resize_image
 from filtros.byn import apply_gray_filter
 from filtros.brillo import adjust_brightness
 from filtros.filters import apply_gaussian_blur, apply_laplace_filter
+from filtros.histograma import Histogram
 
 # Inicialización de variables globales
 img = None
@@ -64,6 +66,17 @@ def apply_gaussian_and_display():
         panel.config(image=img_tk)
         panel.image = img_tk
 
+def show_histogram():
+    if img is not None:
+        if isinstance(img, np.ndarray):
+            # Crear instancia de la clase Histogram y mostrar el histograma al hacer clic en el botón
+            histogram = Histogram(current_img)
+            histogram.plot_histogram()
+        else:
+            print("La imagen no se ha cargado correctamente.")
+    else:
+        info_label.config(text="No se ha cargado ninguna imagen")
+
 def apply_laplace_and_display():
     global current_img
     if img is not None:
@@ -91,6 +104,9 @@ load_btn.pack(pady=10)
 
 info_label = tk.Label(right_frame, text="Tamaño de la imagen: ", font=('Helvetica', 12))
 info_label.pack(pady=10)
+
+histogram_btn = tk.Button(right_frame, text="Mostrar Histograma", command=show_histogram)
+histogram_btn.pack(pady=10)
 
 info_btn = tk.Button(right_frame, text="Mostrar Información", command=show_info)
 info_btn.pack(pady=10)

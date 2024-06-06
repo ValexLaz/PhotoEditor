@@ -1,11 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog
 import cv2
-import matplotlib.pyplot as plt
 from PIL import Image, ImageTk
-from filtros.segmantacion import segment_color, resize_image
+from filtros.segmentacion import segment_color, resize_image
 from filtros.byn import apply_gray_filter
 from filtros.brillo import adjust_brightness
+from filtros.filters import apply_gaussian_blur
 
 # Inicialización de variables globales
 img = None
@@ -43,7 +43,6 @@ def apply_gray_filter_and_display():
         panel.config(image=img_tk)
         panel.image = img_tk
 
-# Función para ajustar el brillo y mostrar la imagen
 def adjust_brightness_and_display(brightness):
     global current_img
     if current_img is not None:
@@ -51,6 +50,17 @@ def adjust_brightness_and_display(brightness):
         bright_img_resized = resize_image(bright_img, 600)
 
         img_tk = ImageTk.PhotoImage(image=Image.fromarray(bright_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+def apply_gaussian_and_display():
+    global current_img
+    if img is not None:
+        blurred_img = apply_gaussian_blur(current_img, (15, 15))
+        current_img = blurred_img
+        blurred_img_resized = resize_image(blurred_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(blurred_img_resized))
         panel.config(image=img_tk)
         panel.image = img_tk
 
@@ -88,5 +98,8 @@ btn_gray.pack(pady=5)
 brightness_scrollbar = tk.Scale(right_frame, from_=0, to_=200, orient=tk.HORIZONTAL, label="Ajustar Brillo", command=lambda value: adjust_brightness_and_display(int(value)))
 brightness_scrollbar.set(100)  # Valor inicial (100%)
 brightness_scrollbar.pack(pady=5)
+
+gaussian_btn = tk.Button(right_frame, text="Aplicar Filtro Gaussiano", command=apply_gaussian_and_display)
+gaussian_btn.pack(pady=10)
 
 win.mainloop()

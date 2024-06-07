@@ -19,10 +19,7 @@ def segment_color(img_rgb, panel, layer):
             segmented_img = img_rgb[:, :, 2]
             cmap = 'Blues'
 
-        # Redimensionar imagen segmentada
         segmented_img_resized = resize_image(segmented_img, 600)
-
-        # Mostrar imagen segmentada en la ventana
         img_tk = ImageTk.PhotoImage(image=Image.fromarray(segmented_img_resized))
         panel.config(image=img_tk)
         panel.image = img_tk

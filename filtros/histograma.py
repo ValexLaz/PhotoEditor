@@ -10,17 +10,12 @@ class Histogram:
         if self.image is None:
             print("No se ha cargado ninguna imagen.")
             return
-
-        # Convertir la imagen a escala de grises si es a color
         if len(self.image.shape) == 3:
             gray_image = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
         else:
             gray_image = self.image
-
-        # Calcular el histograma
         hist, bins = np.histogram(gray_image.flatten(), 256, [0, 256])
         return hist, bins
-
     def plot_histogram(self):
         hist, bins = self.compute_histogram()
 

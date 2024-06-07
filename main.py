@@ -9,7 +9,6 @@ from filtros.brillo import adjust_brightness
 from filtros.filters import apply_gaussian_blur, apply_laplace_filter
 from filtros.histograma import Histogram
 
-# Inicialización de variables globales
 img = None
 img_rgb = None
 current_img = None
@@ -69,7 +68,6 @@ def apply_gaussian_and_display():
 def show_histogram():
     if img is not None:
         if isinstance(img, np.ndarray):
-            # Crear instancia de la clase Histogram y mostrar el histograma al hacer clic en el botón
             histogram = Histogram(current_img)
             histogram.plot_histogram()
         else:
@@ -84,7 +82,7 @@ def apply_laplace_and_display():
         if laplace_img is not None:
             panel.config(image=laplace_img)
             panel.image = laplace_img
-            current_img = img  # Guardar la imagen original para futuros ajustes
+            current_img = img
 
 def reset_image():
     global current_img
@@ -131,7 +129,7 @@ btn_gray = tk.Button(right_frame, text="Blanco y Negro", command=apply_gray_filt
 btn_gray.pack(pady=5)
 
 brightness_scrollbar = tk.Scale(right_frame, from_=0, to_=200, orient=tk.HORIZONTAL, label="Ajustar Brillo", command=lambda value: adjust_brightness_and_display(int(value)))
-brightness_scrollbar.set(100)  # Valor inicial (100%)
+brightness_scrollbar.set(100)
 brightness_scrollbar.pack(pady=5)
 
 gaussian_btn = tk.Button(right_frame, text="Aplicar Filtro Gaussiano", command=apply_gaussian_and_display)

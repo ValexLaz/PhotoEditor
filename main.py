@@ -8,6 +8,8 @@ from filtros.byn import apply_gray_filter
 from filtros.brillo import adjust_brightness
 from filtros.filters import apply_gaussian_blur, apply_laplace_filter
 from filtros.histograma import Histogram
+from filtros.equalize import EqualizeHistogram
+from filtros.contraste import adjust_contrast
 
 img = None
 img_rgb = None
@@ -66,12 +68,36 @@ def apply_gaussian_and_display():
         panel.image = img_tk
 
 def show_histogram():
+    global current_img
     if img is not None:
-        if isinstance(img, np.ndarray):
-            histogram = Histogram(current_img)
-            histogram.plot_histogram()
+        histogram = Histogram(current_img)
+        gray_image = histogram.plot_histogram()
+
+        if gray_image is not None:
+            current_img = gray_image  # Actualiza la imagen actual a la imagen en escala de grises
+            gray_img_resized = resize_image(gray_image, 600)
+            img_tk = ImageTk.PhotoImage(image=Image.fromarray(gray_img_resized))
+            panel.config(image=img_tk)
+            panel.image = img_tk
         else:
-            print("La imagen no se ha cargado correctamente.")
+            info_label.config(text="Error al generar el histograma.")
+    else:
+        info_label.config(text="No se ha cargado ninguna imagen")
+
+def equalize_histogram_and_display():
+    global current_img
+    if img is not None:
+        equalizer = EqualizeHistogram(current_img)
+        equalized_image = equalizer.plot_equalized_histogram()
+
+        if equalized_image is not None:
+            current_img = equalized_image
+            equalized_img_resized = resize_image(equalized_image, 600)
+            img_tk = ImageTk.PhotoImage(image=Image.fromarray(equalized_img_resized))
+            panel.config(image=img_tk)
+            panel.image = img_tk
+        else:
+            info_label.config(text="Error al ecualizar el histograma.")
     else:
         info_label.config(text="No se ha cargado ninguna imagen")
 
@@ -83,6 +109,17 @@ def apply_laplace_and_display():
             panel.config(image=laplace_img)
             panel.image = laplace_img
             current_img = img
+
+
+def adjust_contrast_and_display(contrast):
+    global current_img
+    if current_img is not None:
+        contrast_img = adjust_contrast(current_img, float(contrast))
+        contrast_img_resized = resize_image(contrast_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(contrast_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
 
 def reset_image():
     global current_img
@@ -116,6 +153,9 @@ info_label.pack(pady=10)
 histogram_btn = tk.Button(right_frame, text="Mostrar Histograma", command=show_histogram)
 histogram_btn.pack(pady=10)
 
+equalize_hist_btn = tk.Button(right_frame, text="Ecualizar Histograma", command=equalize_histogram_and_display)
+equalize_hist_btn.pack(pady=10)
+
 info_btn = tk.Button(right_frame, text="Mostrar Información", command=show_info)
 info_btn.pack(pady=10)
 
@@ -131,6 +171,11 @@ btn_gray.pack(pady=5)
 brightness_scrollbar = tk.Scale(right_frame, from_=0, to_=200, orient=tk.HORIZONTAL, label="Ajustar Brillo", command=lambda value: adjust_brightness_and_display(int(value)))
 brightness_scrollbar.set(100)
 brightness_scrollbar.pack(pady=5)
+
+contrast_scrollbar = tk.Scale(right_frame, from_=0.5, to_=3.0, resolution=0.1, orient=tk.HORIZONTAL, label="Ajustar Contraste", command=lambda value: adjust_contrast_and_display(value))
+contrast_scrollbar.set(1.0)
+contrast_scrollbar.pack(pady=5)
+
 
 gaussian_btn = tk.Button(right_frame, text="Aplicar Filtro Gaussiano", command=apply_gaussian_and_display)
 gaussian_btn.pack(pady=10)

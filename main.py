@@ -10,6 +10,7 @@ from filtros.filters import apply_gaussian_blur, apply_laplace_filter
 from filtros.histograma import Histogram
 from filtros.equalize import EqualizeHistogram
 from filtros.contraste import adjust_contrast
+from filtros.negativo import apply_negative
 
 img = None
 img_rgb = None
@@ -136,6 +137,19 @@ def adjust_contrast_and_display(contrast):
 
         on_frame_configure(None)
 
+def apply_negative_and_display():
+    global current_img
+    if current_img is not None:
+        negative_img = apply_negative(current_img)
+        negative_img_resized = resize_image(negative_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(negative_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
+
+
 def reset_image():
     global current_img
     if img_rgb is not None:
@@ -155,7 +169,7 @@ win.geometry("1000x600")
 left_frame = tk.Frame(win, width=600, height=600)
 left_frame.pack(side="left", fill="both", expand=True)
 
-right_frame_canvas = tk.Canvas(win, width=200, height=600)
+right_frame_canvas = tk.Canvas(win, width=200, height=00)
 right_frame_canvas.pack(side="right", fill="y")
 
 scrollbar = tk.Scrollbar(win, orient="vertical", command=right_frame_canvas.yview)
@@ -183,6 +197,9 @@ histogram_btn.pack(pady=10)
 
 equalize_hist_btn = tk.Button(right_frame, text="Ecualizar Histograma", command=equalize_histogram_and_display)
 equalize_hist_btn.pack(pady=10)
+
+negative_btn = tk.Button(right_frame, text="Aplicar Negativo", command=apply_negative_and_display)
+negative_btn.pack(pady=10)
 
 info_btn = tk.Button(right_frame, text="Mostrar Información", command=show_info)
 info_btn.pack(pady=10)

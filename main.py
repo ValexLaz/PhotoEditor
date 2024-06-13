@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 from filtros.segmentacion import segment_color, resize_image
 from filtros.byn import apply_gray_filter
 from filtros.brillo import adjust_brightness
-from filtros.filters import apply_gaussian_blur, apply_laplace_filter
+from filtros.filters import apply_gaussian_blur, apply_laplace_filter,apply_blur, apply_sobel_filter, apply_canny_filter
 from filtros.histograma import Histogram
 from filtros.equalize import EqualizeHistogram
 from filtros.contraste import adjust_contrast
@@ -15,13 +15,15 @@ from filtros.negativo import apply_negative
 img = None
 img_rgb = None
 current_img = None
+original_img = None
 
 def load_image():
-    global img, img_rgb, current_img
+    global img, img_rgb, current_img, original_img
     file_path = filedialog.askopenfilename()
     img = cv2.imread(file_path)
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     current_img = img_rgb
+    original_img = img_rgb
 
     img_resized = resize_image(img_rgb, 600)
 
@@ -74,6 +76,19 @@ def apply_gaussian_and_display():
         panel.config(image=img_tk)
         panel.image = img_tk
 
+        on_frame_configure(None)
+
+def apply_blur_and_display(blur_level):
+    global current_img
+    if original_img is not None:
+        kernel_sizes = [(1, 1), (3, 3), (5, 5), (7, 7), (9, 9), (11, 11)]
+        kernel_size = kernel_sizes[int(blur_level)]
+        blurred_img = apply_blur(original_img, kernel_size)  # Usamos la imagen original
+        current_img = blurred_img
+        blurred_img_resized = resize_image(blurred_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(blurred_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
         on_frame_configure(None)
 
 def show_histogram():
@@ -151,25 +166,46 @@ def apply_negative_and_display():
 
 
 def reset_image():
-    global current_img
+    global current_img, original_img
     if img_rgb is not None:
         current_img = img_rgb
+        original_img = img_rgb  # Restablecemos la imagen original
         img_resized = resize_image(img_rgb, 600)
-
         img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
         panel.config(image=img_tk)
         panel.image = img_tk
+        on_frame_configure(None)
 
+def apply_sobel_and_display(dx, dy):
+    global current_img
+    if img is not None:
+        sobel_img = apply_sobel_filter(current_img, dx, dy)
+        current_img = sobel_img
+        sobel_img_resized = resize_image(sobel_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(sobel_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+        on_frame_configure(None)
+
+def apply_canny_and_display(threshold1, threshold2):
+    global current_img
+    if img is not None:
+        canny_img = apply_canny_filter(current_img, threshold1, threshold2)
+        current_img = canny_img
+        canny_img_resized = resize_image(canny_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(canny_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
         on_frame_configure(None)
 
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
-win.geometry("1000x600")
+win.geometry("1200x800")
 
-left_frame = tk.Frame(win, width=600, height=600)
+left_frame = tk.Frame(win, width=800, height=800)
 left_frame.pack(side="left", fill="both", expand=True)
 
-right_frame_canvas = tk.Canvas(win, width=200, height=00)
+right_frame_canvas = tk.Canvas(win, width=200, height=800)
 right_frame_canvas.pack(side="right", fill="y")
 
 scrollbar = tk.Scrollbar(win, orient="vertical", command=right_frame_canvas.yview)
@@ -187,22 +223,22 @@ panel = tk.Label(left_frame)
 panel.pack(padx=10, pady=10)
 
 load_btn = tk.Button(right_frame, text="Cargar Imagen", command=load_image)
-load_btn.pack(pady=10)
+load_btn.pack(pady=5)
 
 info_label = tk.Label(right_frame, text="Tamaño de la imagen: ", font=('Helvetica', 12))
-info_label.pack(pady=10)
+info_label.pack(pady=5)
 
 histogram_btn = tk.Button(right_frame, text="Mostrar Histograma", command=show_histogram)
-histogram_btn.pack(pady=10)
+histogram_btn.pack(pady=5)
 
 equalize_hist_btn = tk.Button(right_frame, text="Ecualizar Histograma", command=equalize_histogram_and_display)
-equalize_hist_btn.pack(pady=10)
+equalize_hist_btn.pack(pady=5)
 
 negative_btn = tk.Button(right_frame, text="Aplicar Negativo", command=apply_negative_and_display)
-negative_btn.pack(pady=10)
+negative_btn.pack(pady=5)
 
 info_btn = tk.Button(right_frame, text="Mostrar Información", command=show_info)
-info_btn.pack(pady=10)
+info_btn.pack(pady=5)
 
 btn_red = tk.Button(right_frame, text="Segmentar Rojo", command=lambda: segment_color(img_rgb, panel, 'R'))
 btn_red.pack(pady=5)
@@ -221,13 +257,26 @@ contrast_scrollbar = tk.Scale(right_frame, from_=0.5, to_=3.0, resolution=0.1, o
 contrast_scrollbar.set(1.0)
 contrast_scrollbar.pack(pady=5)
 
+blur_scrollbar = tk.Scale(right_frame, from_=0, to_=5, orient=tk.HORIZONTAL, label="Ajustar Desenfoque", command=lambda value: apply_blur_and_display(int(value)))
+blur_scrollbar.set(0)
+blur_scrollbar.pack(pady=5)
+
 gaussian_btn = tk.Button(right_frame, text="Aplicar Filtro Gaussiano", command=apply_gaussian_and_display)
-gaussian_btn.pack(pady=10)
+gaussian_btn.pack(pady=5)
 
 laplace_btn = tk.Button(right_frame, text="Aplicar Filtro Laplace", command=apply_laplace_and_display)
-laplace_btn.pack(pady=10)
+laplace_btn.pack(pady=5)
 
 reset_btn = tk.Button(right_frame, text="Restaurar Imagen", command=reset_image)
-reset_btn.pack(pady=10)
+reset_btn.pack(pady=5)
+
+sobel_x_btn = tk.Button(right_frame, text="Aplicar Sobel X", command=lambda: apply_sobel_and_display(1, 0))
+sobel_x_btn.pack(pady=5)
+
+sobel_y_btn = tk.Button(right_frame, text="Aplicar Sobel Y", command=lambda: apply_sobel_and_display(0, 1))
+sobel_y_btn.pack(pady=5)
+
+canny_btn = tk.Button(right_frame, text="Aplicar Canny", command=lambda: apply_canny_and_display(100, 200))
+canny_btn.pack(pady=5)
 
 win.mainloop()

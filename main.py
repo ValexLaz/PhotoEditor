@@ -11,7 +11,7 @@ from filtros.histograma import Histogram
 from filtros.equalize import EqualizeHistogram
 from filtros.contraste import adjust_contrast
 from filtros.negativo import apply_negative
-
+from filtros.cuantizacion import apply_quantization, apply_pixelation
 img = None
 img_rgb = None
 current_img = None
@@ -164,7 +164,6 @@ def apply_negative_and_display():
 
         on_frame_configure(None)
 
-
 def reset_image():
     global current_img, original_img
     if img_rgb is not None:
@@ -197,6 +196,81 @@ def apply_canny_and_display(threshold1, threshold2):
         panel.config(image=img_tk)
         panel.image = img_tk
         on_frame_configure(None)
+
+def apply_quantization_and_display(clusters):
+    global current_img
+    if current_img is not None:
+        if clusters == 0:
+            quantized_img = current_img
+        else:
+            quantized_img = apply_quantization(current_img, clusters)
+
+        quantized_img_resized = resize_image(quantized_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(quantized_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
+
+def apply_pixelation_and_display(pixel_size):
+    global current_img
+    if current_img is not None:
+        if pixel_size == 0:
+            pixelated_img = current_img
+        else:
+            pixelated_img = apply_pixelation(current_img, pixel_size)
+
+        pixelated_img_resized = resize_image(pixelated_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(pixelated_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
+
+def resize_image_custom():
+    global current_img
+    if current_img is not None:
+        try:
+            new_width = int(width_entry.get())
+            new_height = int(height_entry.get())
+            if new_width > 0 and new_height > 0:
+                resized_img = cv2.resize(current_img, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
+                current_img = resized_img
+                resized_img_resized = resize_image(resized_img, 600)
+
+                img_tk = ImageTk.PhotoImage(image=Image.fromarray(resized_img_resized))
+                panel.config(image=img_tk)
+                panel.image = img_tk
+
+                on_frame_configure(None)
+            else:
+                info_label.config(text="Por favor, ingrese valores válidos para el ancho y el alto.")
+        except ValueError:
+            info_label.config(text="Por favor, ingrese valores válidos para el ancho y el alto.")
+
+
+def rotate_image(angle):
+    global current_img
+    if current_img is not None:
+        height, width = current_img.shape[:2]
+        rotation_matrix = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1)
+        rotated_img = cv2.warpAffine(current_img, rotation_matrix, (width, height))
+        current_img = rotated_img
+
+        rotated_img_resized = resize_image(rotated_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(rotated_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
+
+def rotate_90_right():
+    rotate_image(-90)
+
+def rotate_90_left():
+    rotate_image(90)
 
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
@@ -273,10 +347,37 @@ reset_btn.pack(pady=5)
 sobel_x_btn = tk.Button(right_frame, text="Aplicar Sobel X", command=lambda: apply_sobel_and_display(1, 0))
 sobel_x_btn.pack(pady=5)
 
+clusters_scrollbar = tk.Scale(right_frame, from_=0, to_=5, orient=tk.HORIZONTAL, label="Número de Clusters", command=lambda value: apply_quantization_and_display(int(value)))
+clusters_scrollbar.set(0)
+clusters_scrollbar.pack(pady=5)
+
+pixel_size_scrollbar = tk.Scale(right_frame, from_=0, to_=5, orient=tk.HORIZONTAL, label="Tamaño del Pixelado", command=lambda value: apply_pixelation_and_display(int(value)))
+pixel_size_scrollbar.set(0)
+pixel_size_scrollbar.pack(pady=5)
+
 sobel_y_btn = tk.Button(right_frame, text="Aplicar Sobel Y", command=lambda: apply_sobel_and_display(0, 1))
 sobel_y_btn.pack(pady=5)
 
 canny_btn = tk.Button(right_frame, text="Aplicar Canny", command=lambda: apply_canny_and_display(100, 200))
 canny_btn.pack(pady=5)
+
+width_label = tk.Label(right_frame, text="Ancho")
+width_label.pack(pady=5)
+width_entry = tk.Entry(right_frame)
+width_entry.pack(pady=5)
+
+height_label = tk.Label(right_frame, text="Alto")
+height_label.pack(pady=5)
+height_entry = tk.Entry(right_frame)
+height_entry.pack(pady=5)
+
+resize_button = tk.Button(right_frame, text="Cambiar Tamaño", command=resize_image_custom)
+resize_button.pack(pady=5)
+
+rotate_right_button = tk.Button(right_frame, text="Girar 90° a la Derecha", command=rotate_90_right)
+rotate_right_button.pack(pady=5)
+
+rotate_left_button = tk.Button(right_frame, text="Girar 90° a la Izquierda", command=rotate_90_left)
+rotate_left_button.pack(pady=5)
 
 win.mainloop()

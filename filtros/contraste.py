@@ -1,4 +1,3 @@
-# filtros/contraste.py
 import cv2
 import numpy as np
 

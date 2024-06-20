@@ -1,8 +1,19 @@
 import tkinter as tk
-from filtros.transformaciones import rotate_image, custom_transform_1, custom_transform_2, custom_transform_3, custom_transform_4
-from ..main import current_img, update_image_display
+from .transformaciones import rotate_image, custom_transform_1, custom_transform_2, custom_transform_3, custom_transform_4
+
+
+current_img = None
+update_image_display = None
+
+def set_globals(img, update_display_func):
+    global current_img, update_image_display
+    current_img = img
+    update_image_display = update_display_func
+
+
 def apply_transformation(transformation_func, *args):
     global current_img, update_image_display
+
     if current_img is not None:
         transformed_image = transformation_func(current_img, *args)
         current_img = transformed_image

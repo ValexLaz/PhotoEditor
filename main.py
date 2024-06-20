@@ -12,10 +12,13 @@ from filtros.equalize import EqualizeHistogram
 from filtros.contraste import adjust_contrast
 from filtros.negativo import apply_negative
 from filtros.cuantizacion import apply_quantization, apply_pixelation
+from filtros.botones_transformaciones import create_transform_buttons,  set_globals
+from filtros.morfologia import apply_dilation, apply_erosion
 img = None
 img_rgb = None
 current_img = None
 original_img = None
+update_image_display = None
 
 def load_image():
     global img, img_rgb, current_img, original_img
@@ -30,8 +33,14 @@ def load_image():
     img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
     panel.config(image=img_tk)
     panel.image = img_tk
-
+    set_globals(current_img, update_image_display)
     on_frame_configure(None)
+
+def update_image_display(img):
+    img_resized = resize_image(img, 600)
+    img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
+    panel.config(image=img_tk)
+    panel.image = img_tk
 
 def show_info():
     if img is not None:
@@ -272,6 +281,34 @@ def rotate_90_right():
 def rotate_90_left():
     rotate_image(90)
 
+
+def apply_dilation_and_display(iterations):
+    global current_img, original_img  # Asegúrate de incluir original_img
+    if original_img is not None:
+        dilated_img = apply_dilation(original_img, iterations=int(iterations))  # Usa original_img
+        current_img = dilated_img
+        dilated_img_resized = resize_image(dilated_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(dilated_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
+
+
+def apply_erosion_and_display(iterations):
+    global current_img, original_img  # Asegúrate de incluir original_img
+    if original_img is not None:
+        eroded_img = apply_erosion(original_img, iterations=int(iterations))  # Usa original_img
+        current_img = eroded_img
+        eroded_img_resized = resize_image(eroded_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(eroded_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
+
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
 win.geometry("1200x800")
@@ -380,4 +417,13 @@ rotate_right_button.pack(pady=5)
 rotate_left_button = tk.Button(right_frame, text="Girar 90° a la Izquierda", command=rotate_90_left)
 rotate_left_button.pack(pady=5)
 
+create_transform_buttons(right_frame)
+
+dilation_scrollbar = tk.Scale(right_frame, from_=1, to_=10, orient=tk.HORIZONTAL, label="Iteraciones de Dilatación", command=apply_dilation_and_display)
+dilation_scrollbar.set(1)
+dilation_scrollbar.pack(pady=5)
+
+erosion_scrollbar = tk.Scale(right_frame, from_=1, to_=10, orient=tk.HORIZONTAL, label="Iteraciones de Erosión", command=apply_erosion_and_display)
+erosion_scrollbar.set(1)
+erosion_scrollbar.pack(pady=5)
 win.mainloop()

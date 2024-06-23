@@ -14,6 +14,7 @@ from filtros.negativo import apply_negative
 from filtros.cuantizacion import apply_quantization, apply_pixelation
 from filtros.botones_transformaciones import create_transform_buttons,  set_globals
 from filtros.morfologia import apply_dilation, apply_erosion
+from filtros.kernels import apply_kernel1, apply_kernel2, apply_kernel3, apply_random_kernel
 img = None
 img_rgb = None
 current_img = None
@@ -297,9 +298,9 @@ def apply_dilation_and_display(iterations):
 
 
 def apply_erosion_and_display(iterations):
-    global current_img, original_img  # Asegúrate de incluir original_img
+    global current_img, original_img
     if original_img is not None:
-        eroded_img = apply_erosion(original_img, iterations=int(iterations))  # Usa original_img
+        eroded_img = apply_erosion(original_img, iterations=int(iterations))
         current_img = eroded_img
         eroded_img_resized = resize_image(eroded_img, 600)
 
@@ -307,6 +308,50 @@ def apply_erosion_and_display(iterations):
         panel.config(image=img_tk)
         panel.image = img_tk
 
+        on_frame_configure(None)
+
+def apply_kernel1_and_display():
+    global current_img
+    if current_img is not None:
+        kernel1_img = apply_kernel1(current_img)
+        current_img = kernel1_img
+        kernel1_img_resized = resize_image(kernel1_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(kernel1_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+        on_frame_configure(None)
+
+def apply_kernel2_and_display():
+    global current_img
+    if current_img is not None:
+        kernel2_img = apply_kernel2(current_img)
+        current_img = kernel2_img
+        kernel2_img_resized = resize_image(kernel2_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(kernel2_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+        on_frame_configure(None)
+
+def apply_kernel3_and_display():
+    global current_img
+    if current_img is not None:
+        kernel3_img = apply_kernel3(current_img)
+        current_img = kernel3_img
+        kernel3_img_resized = resize_image(kernel3_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(kernel3_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+        on_frame_configure(None)
+
+def apply_random_kernel_and_display():
+    global current_img
+    if current_img is not None:
+        random_kernel_img = apply_random_kernel(current_img)
+        current_img = random_kernel_img
+        random_kernel_img_resized = resize_image(random_kernel_img, 600)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(random_kernel_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
         on_frame_configure(None)
 
 win = tk.Tk()
@@ -419,11 +464,24 @@ rotate_left_button.pack(pady=5)
 
 create_transform_buttons(right_frame)
 
-dilation_scrollbar = tk.Scale(right_frame, from_=1, to_=10, orient=tk.HORIZONTAL, label="Iteraciones de Dilatación", command=apply_dilation_and_display)
-dilation_scrollbar.set(1)
+dilation_scrollbar = tk.Scale(right_frame, from_=0, to_=10, orient=tk.HORIZONTAL, label="Iteraciones de Dilatación", command=apply_dilation_and_display)
+dilation_scrollbar.set(0)
 dilation_scrollbar.pack(pady=5)
 
-erosion_scrollbar = tk.Scale(right_frame, from_=1, to_=10, orient=tk.HORIZONTAL, label="Iteraciones de Erosión", command=apply_erosion_and_display)
-erosion_scrollbar.set(1)
+erosion_scrollbar = tk.Scale(right_frame, from_=0, to_=10, orient=tk.HORIZONTAL, label="Iteraciones de Erosión", command=apply_erosion_and_display)
+erosion_scrollbar.set(0)
 erosion_scrollbar.pack(pady=5)
+
+
+kernel1_btn = tk.Button(right_frame, text="Aplicar Kernel 1", command=apply_kernel1_and_display)
+kernel1_btn.pack(pady=5)
+
+kernel2_btn = tk.Button(right_frame, text="Aplicar Kernel 2", command=apply_kernel2_and_display)
+kernel2_btn.pack(pady=5)
+
+kernel3_btn = tk.Button(right_frame, text="Aplicar Kernel 3", command=apply_kernel3_and_display)
+kernel3_btn.pack(pady=5)
+
+random_kernel_btn = tk.Button(right_frame, text="Aplicar Kernel Aleatorio", command=apply_random_kernel_and_display)
+random_kernel_btn.pack(pady=5)
 win.mainloop()

@@ -21,7 +21,7 @@ img_rgb = None
 current_img = None
 original_img = None
 update_image_display = None
-
+cap = None
 def load_image():
     global img, img_rgb, current_img, original_img
     file_path = filedialog.askopenfilename()
@@ -406,6 +406,42 @@ def apply_random_kernel_and_display():
         panel.image = img_tk
         on_frame_configure(None)
 
+def start_camera():
+    global cap
+    cap = cv2.VideoCapture(1) #cambiar dependiendo de la camara
+    display_camera()
+
+def display_camera():
+    global cap, img, img_rgb, current_img, original_img
+    if cap is not None and cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            img = frame
+            img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img_resized = resize_image(img_rgb, 600)
+            img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
+            panel.config(image=img_tk)
+            panel.image = img_tk
+            panel.after(10, display_camera)
+
+def take_snapshot(event):
+    global cap, img, img_rgb, current_img, original_img
+    if cap is not None and cap.isOpened():
+        ret, frame = cap.read()
+        if ret:
+            img = frame
+            img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            current_img = img_rgb
+            original_img = img_rgb
+            info_label.config(text="Imagen capturada de la cámara")
+            set_globals(current_img, update_image_display)
+            img_resized = resize_image(img_rgb, 600)
+            img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
+            panel.config(image=img_tk)
+            panel.image = img_tk
+            cap.release()
+
+
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
 win.geometry("1200x800")
@@ -432,6 +468,9 @@ panel.pack(padx=10, pady=10)
 
 load_btn = tk.Button(right_frame, text="Cargar Imagen", command=load_image)
 load_btn.pack(pady=5)
+
+camera_btn = tk.Button(right_frame, text="Encender Cámara", command=start_camera)
+camera_btn.pack(pady=5)
 
 info_label = tk.Label(right_frame, text="Tamaño de la imagen: ", font=('Helvetica', 12))
 info_label.pack(pady=5)
@@ -565,4 +604,5 @@ sum_btn.pack(pady=5)
 rest_btn = tk.Button(right_frame, text="Restar Imágenes", command=lambda: restar_imagenes_and_display(float(alpha1_entry.get()), float(alpha2_entry.get())))
 rest_btn.pack(pady=5)
 
+win.bind('<s>', take_snapshot)
 win.mainloop()

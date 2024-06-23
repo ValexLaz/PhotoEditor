@@ -15,6 +15,7 @@ from filtros.cuantizacion import apply_quantization, apply_pixelation
 from filtros.botones_transformaciones import create_transform_buttons,  set_globals
 from filtros.morfologia import apply_dilation, apply_erosion
 from filtros.kernels import apply_kernel1, apply_kernel2, apply_kernel3, apply_random_kernel
+from filtros.sumaResta_imagen import SumaRestaImagen
 img = None
 img_rgb = None
 current_img = None
@@ -36,6 +37,57 @@ def load_image():
     panel.image = img_tk
     set_globals(current_img, update_image_display)
     on_frame_configure(None)
+
+def load_image1():
+    global img1, current_img, original_img
+    file_path = filedialog.askopenfilename()
+    img1 = cv2.imread(file_path)
+    img_rgb = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
+    current_img = img_rgb
+    original_img = img_rgb
+    info_label.config(text="Imagen 1 cargada")
+    img_resized = resize_image(img_rgb, 600)
+
+    img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
+    panel.config(image=img_tk)
+    panel.image = img_tk
+    set_globals(current_img, update_image_display)
+    on_frame_configure(None)
+
+def load_image2():
+    global img2
+    file_path = filedialog.askopenfilename()
+    img2 = cv2.imread(file_path)
+    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+    info_label.config(text="Imagen 2 cargada")
+
+def sumar_imagenes_and_display(alpha1, alpha2):
+    global current_img
+    if img1 is not None and img2 is not None:
+        suma_resta = SumaRestaImagen(img1, img2)
+        sum_img = suma_resta.sumar_imagenes(alpha1, alpha2)
+        current_img = sum_img
+        sum_img_resized = resize_image(sum_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(sum_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
+
+def restar_imagenes_and_display(alpha1, alpha2):
+    global current_img
+    if img1 is not None and img2 is not None:
+        suma_resta = SumaRestaImagen(img1, img2)
+        rest_img = suma_resta.restar_imagenes(alpha1, alpha2)
+        current_img = rest_img
+        rest_img_resized = resize_image(rest_img, 600)
+
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(rest_img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+
+        on_frame_configure(None)
 
 def update_image_display(img):
     img_resized = resize_image(img, 600)
@@ -484,4 +536,33 @@ kernel3_btn.pack(pady=5)
 
 random_kernel_btn = tk.Button(right_frame, text="Aplicar Kernel Aleatorio", command=apply_random_kernel_and_display)
 random_kernel_btn.pack(pady=5)
+
+panel = tk.Label(left_frame)
+panel.pack(padx=10, pady=10)
+
+load_btn1 = tk.Button(right_frame, text="Cargar Imagen 1", command=load_image1)
+load_btn1.pack(pady=5)
+
+load_btn2 = tk.Button(right_frame, text="Cargar Imagen 2", command=load_image2)
+load_btn2.pack(pady=5)
+
+info_label = tk.Label(right_frame, text="Suma y Resta de imagenes", font=('Helvetica', 12))
+info_label.pack(pady=5)
+
+alpha1_label = tk.Label(right_frame, text="Alpha 1")
+alpha1_label.pack(pady=5)
+alpha1_entry = tk.Entry(right_frame)
+alpha1_entry.pack(pady=5)
+
+alpha2_label = tk.Label(right_frame, text="Alpha 2")
+alpha2_label.pack(pady=5)
+alpha2_entry = tk.Entry(right_frame)
+alpha2_entry.pack(pady=5)
+
+sum_btn = tk.Button(right_frame, text="Sumar Imágenes", command=lambda: sumar_imagenes_and_display(float(alpha1_entry.get()), float(alpha2_entry.get())))
+sum_btn.pack(pady=5)
+
+rest_btn = tk.Button(right_frame, text="Restar Imágenes", command=lambda: restar_imagenes_and_display(float(alpha1_entry.get()), float(alpha2_entry.get())))
+rest_btn.pack(pady=5)
+
 win.mainloop()

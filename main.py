@@ -19,6 +19,7 @@ from filtros.morfologia import apply_dilation, apply_erosion
 from filtros.kernels import apply_kernel1, apply_kernel2, apply_kernel3, apply_random_kernel
 from filtros.sumaResta_imagen import SumaRestaImagen
 from filtros.fourier import Fourier
+from filtros.convolucion import Convolution
 img = None
 img_rgb = None
 current_img = None
@@ -476,6 +477,16 @@ def plot_fourier_spectrum(spectrum):
     canvas.draw()
     canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
+def apply_convolution_and_display():
+    global current_img
+    if current_img is not None:
+        kernel = np.array([[1, 0, -1],
+                           [0, 0, 0],
+                           [-1, 0, 1]])
+        convolution = Convolution(current_img, kernel)
+        convolved_image = convolution.apply_convolution()
+        show_image(convolved_image)
+
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
 win.geometry("1200x800")
@@ -640,6 +651,9 @@ rest_btn.pack(pady=5)
 
 fourier_btn = tk.Button(right_frame, text="Aplicar Fourier", command=apply_fourier_and_display)
 fourier_btn.pack(pady=5)
+
+convolution_btn = tk.Button(right_frame, text="Aplicar Convolución", command=apply_convolution_and_display)
+convolution_btn.pack(pady=5)
 
 win.bind('<s>', take_snapshot)
 win.mainloop()

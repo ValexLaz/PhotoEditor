@@ -19,6 +19,10 @@ from filtros.morfologia import apply_dilation, apply_erosion
 from filtros.kernels import apply_kernel1, apply_kernel2, apply_kernel3, apply_random_kernel
 from filtros.sumaResta_imagen import SumaRestaImagen
 from filtros.fourier import Fourier
+from filtros.bordes import edge_detection_and_display
+from filtros.deteccion import detect_objects 
+
+
 img = None
 img_rgb = None
 current_img = None
@@ -71,6 +75,24 @@ def load_image2():
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
     info_label.config(text="Imagen 2 cargada")
 
+def detect_objects_callback():
+    global img_rgb  # Asegúrate de tener acceso a la variable img_rgb globalmente
+    if img_rgb is None:
+        print("No se ha cargado ninguna imagen.")
+        return
+    
+    img_with_rectangles = detect_objects(img_rgb)
+    update_image_display(img_with_rectangles)
+
+
+def edge_detection_and_display_main():
+    global current_img
+    if current_img is not None:
+        img_with_edges = edge_detection_and_display(current_img)
+        update_image_display(img_with_edges)
+    else:
+        info_label.config(text="No se ha cargado ninguna imagen")
+
 def sumar_imagenes_and_display(alpha1, alpha2):
     global current_img
     if img1 is not None and img2 is not None:
@@ -104,6 +126,7 @@ def update_image_display(img):
     img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
     panel.config(image=img_tk)
     panel.image = img_tk
+    on_frame_configure(None)
 
 def show_info():
     if img is not None:
@@ -640,6 +663,12 @@ rest_btn.pack(pady=5)
 
 fourier_btn = tk.Button(right_frame, text="Aplicar Fourier", command=apply_fourier_and_display)
 fourier_btn.pack(pady=5)
+
+edge_detection_btn = tk.Button(right_frame, text="Detectar Bordes", command=edge_detection_and_display_main)
+edge_detection_btn.pack(pady=5)
+
+detect_objects_btn = tk.Button(right_frame, text="Detectar Objetos", command=detect_objects_callback)
+detect_objects_btn.pack(pady=5)
 
 win.bind('<s>', take_snapshot)
 win.mainloop()

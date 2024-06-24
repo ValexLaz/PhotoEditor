@@ -3,6 +3,8 @@ from tkinter import filedialog
 import cv2
 import numpy as np
 from PIL import Image, ImageTk
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from filtros.segmentacion import segment_color, resize_image
 from filtros.byn import apply_gray_filter
 from filtros.brillo import adjust_brightness
@@ -16,6 +18,7 @@ from filtros.botones_transformaciones import create_transform_buttons,  set_glob
 from filtros.morfologia import apply_dilation, apply_erosion
 from filtros.kernels import apply_kernel1, apply_kernel2, apply_kernel3, apply_random_kernel
 from filtros.sumaResta_imagen import SumaRestaImagen
+from filtros.fourier import Fourier
 img = None
 img_rgb = None
 current_img = None
@@ -25,18 +28,25 @@ cap = None
 def load_image():
     global img, img_rgb, current_img, original_img
     file_path = filedialog.askopenfilename()
-    img = cv2.imread(file_path)
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    current_img = img_rgb
-    original_img = img_rgb
+    if file_path:
+        print(f"File path: {file_path}")
+        img = cv2.imread(file_path)
+        if img is None:
+            print("Error: Unable to read the image.")
+            return
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        current_img = img_rgb
+        original_img = img_rgb
 
-    img_resized = resize_image(img_rgb, 600)
+        img_resized = resize_image(img_rgb, 600)
 
-    img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
-    panel.config(image=img_tk)
-    panel.image = img_tk
-    set_globals(current_img, update_image_display)
-    on_frame_configure(None)
+        img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
+        panel.config(image=img_tk)
+        panel.image = img_tk
+        set_globals(current_img, update_image_display)
+        on_frame_configure(None)
+    else:
+        print("No file selected.")
 
 def load_image1():
     global img1, current_img, original_img
@@ -441,6 +451,30 @@ def take_snapshot(event):
             panel.image = img_tk
             cap.release()
 
+def apply_fourier_and_display():
+    global current_img
+    if current_img is not None:
+        fourier = Fourier(current_img)
+        magnitude_spectrum = fourier.apply_fourier_transform()
+        show_image(magnitude_spectrum)
+        plot_fourier_spectrum(fourier.get_fourier_spectrum())
+
+def show_image(img):
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img_resized = resize_image(img_rgb, 600)
+    img_tk = ImageTk.PhotoImage(image=Image.fromarray(img_resized))
+    panel.config(image=img_tk)
+    panel.image = img_tk
+
+def plot_fourier_spectrum(spectrum):
+    fig = Figure(figsize=(5, 4), dpi=100)
+    ax = fig.add_subplot(111)
+    ax.imshow(spectrum, cmap='gray')
+    ax.set_title('Fourier Spectrum')
+
+    canvas = FigureCanvasTkAgg(fig, master=win)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
 win = tk.Tk()
 win.title("Procesamiento de Imágenes")
@@ -603,6 +637,9 @@ sum_btn.pack(pady=5)
 
 rest_btn = tk.Button(right_frame, text="Restar Imágenes", command=lambda: restar_imagenes_and_display(float(alpha1_entry.get()), float(alpha2_entry.get())))
 rest_btn.pack(pady=5)
+
+fourier_btn = tk.Button(right_frame, text="Aplicar Fourier", command=apply_fourier_and_display)
+fourier_btn.pack(pady=5)
 
 win.bind('<s>', take_snapshot)
 win.mainloop()
